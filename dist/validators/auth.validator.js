@@ -1,25 +1,42 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.registerSchema = void 0;
-const zod_1 = __importDefault(require("zod"));
-exports.registerSchema = zod_1.default.object({
-    userName: zod_1.default
-        .string()
-        .trim()
-        .min(3, { message: "Username must be at least 3 characters long" })
-        .max(20, { message: "Username must be at most 20 characters long" })
-        .regex(/^[a-z0-9]+$/, { message: "only letters,numbers and underscore are allowed" }),
-    email: zod_1.default
-        .string()
-        .trim()
-        .toLowerCase()
-        .email({ message: "Invalid email address" }),
-    password: zod_1.default
-        .string()
-        .trim()
-        .min(8, { message: "Password must be at least 8 characters long" })
-        .max(72, { message: "Password must be at most 72 characters long" })
+exports.changePasswordSchema = exports.resetPasswordSchema = exports.forgotPasswordSchema = exports.verifyAccountSchema = exports.loginSchema = exports.registerSchema = exports.userNameRule = void 0;
+const zod_1 = require("zod");
+exports.userNameRule = zod_1.z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(3, "Username must be at least 3 characters")
+    .max(20, "Username must be at most 20 characters")
+    .regex(/^[a-z0-9_]+$/, "Only letters, numbers and underscores allowed");
+const emailRule = zod_1.z.string().trim().toLowerCase().email("Invalid email address");
+const passwordRule = zod_1.z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(72, "Password must be at most 72 characters");
+const otpRule = zod_1.z.string().trim().regex(/^\d{6}$/, "Code must be 6 digits");
+exports.registerSchema = zod_1.z.object({
+    username: exports.userNameRule,
+    email: emailRule,
+    password: passwordRule,
+});
+exports.loginSchema = zod_1.z.object({
+    email: emailRule,
+    password: zod_1.z.string().min(1, "Password is required"),
+});
+exports.verifyAccountSchema = zod_1.z.object({ otp: otpRule });
+exports.forgotPasswordSchema = zod_1.z.object({ email: emailRule });
+exports.resetPasswordSchema = zod_1.z.object({
+    email: emailRule,
+    otp: otpRule,
+    newPassword: passwordRule,
+});
+exports.changePasswordSchema = zod_1.z
+    .object({
+    currentPassword: zod_1.z.string().min(1, "Current password is required"),
+    newPassword: passwordRule,
+})
+    .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from the current one",
+    path: ["newPassword"],
 });

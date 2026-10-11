@@ -40,6 +40,22 @@ const userSchema = new mongoose_1.Schema({
     },
     avatar: {
         type: String,
+    },
+    fullName: {
+        type: String,
+        trim: true,
+        minlength: 3,
+        maxlength: 50
+    },
+    bio: {
+        type: String,
+        trim: true,
+        maxlength: 160,
+        default: ""
+    },
+    isVerified: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 userSchema.index({ "providers.providerId": 1, "providers.providerName": 1 });

@@ -1,24 +1,56 @@
-import z from "zod";
+import { z } from "zod";
+
+export const userNameRule = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, "Username must be at least 3 characters")
+  .max(20, "Username must be at most 20 characters")
+  .regex(/^[a-z0-9_]+$/, "Only letters, numbers and underscores allowed");
+
+const emailRule = z.string().trim().toLowerCase().email("Invalid email address");
+
+const passwordRule = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .max(72, "Password must be at most 72 characters");
+
+const otpRule = z.string().trim().regex(/^\d{6}$/, "Code must be 6 digits");
 
 export const registerSchema = z.object({
-    userName:z
-    .string()
-    .trim()
-    .min(3,{message:"Username must be at least 3 characters long"})
-    .max(20,{message:"Username must be at most 20 characters long"})
-    .regex(/^[a-z0-9]+$/,{message:"only letters,numbers and underscore are allowed"}),
+  username: userNameRule,
+  email: emailRule,
+  password: passwordRule,
+});
 
-    email:z
-    .string()
-    .trim()
-    .toLowerCase()
-    .email({message:"Invalid email address"}),
+export const loginSchema = z.object({
+  email: emailRule,
+  password: z.string().min(1, "Password is required"),
+});
 
-    password:z
-    .string()
-    .trim()
-    .min(8,{message:"Password must be at least 8 characters long"})
-    .max(72,{message:"Password must be at most 72 characters long"})
-})
+export const verifyAccountSchema = z.object({ otp: otpRule });
 
-export type registerInput = z.infer<typeof registerSchema>
+export const forgotPasswordSchema = z.object({ email: emailRule });
+
+export const resetPasswordSchema = z.object({
+  email: emailRule,
+  otp: otpRule,
+  newPassword: passwordRule,
+});
+
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    newPassword: passwordRule,
+  })
+  .refine((data) => data.currentPassword !== data.newPassword, {
+    message: "New password must be different from the current one",
+    path: ["newPassword"],
+  });
+
+export type RegisterInput = z.infer<typeof registerSchema>;
+export type LoginInput = z.infer<typeof loginSchema>;
+export type VerifyAccountInput = z.infer<typeof verifyAccountSchema>;
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;

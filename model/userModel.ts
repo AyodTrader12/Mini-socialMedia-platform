@@ -44,6 +44,22 @@ const userSchema = new Schema(
         },
         avatar:{
             type:String,
+        },
+        fullName:{
+            type:String,
+            trim:true,
+            minlength:3,
+            maxlength:50
+        },
+        bio:{
+            type:String,
+            trim:true,
+            maxlength:160,
+            default:""
+        },
+        isVerified:{
+            type:Boolean,
+            default:false
         }
     },
     {timestamps:true}
@@ -51,5 +67,5 @@ const userSchema = new Schema(
 
 userSchema.index({"providers.providerId":1,"providers.providerName":1})
 
-export type User = InferSchemaType<typeof userSchema>
+export type IUser = InferSchemaType<typeof userSchema>
 export const user = model("user", userSchema)

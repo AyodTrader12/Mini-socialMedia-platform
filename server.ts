@@ -5,6 +5,8 @@ import { Request,Response } from "express";
 import helmet from "helmet";
 import { connectDB } from "./config/dataBase";
 import { errorHandler } from "./middleware/errorHandler";
+import userRoutes from "./router/user.routes";
+import authRoutes from "./router/auth.routes";
 env.config()
 
 const app:Application = express();
@@ -12,13 +14,22 @@ const PORT = process.env.PORT
 app.use(express.json())
 app.use(cors())
 app.use(helmet())
+
+
+
+app.use("/api/users", userRoutes);
+app.use("/api/auth", authRoutes);
+
+app.use(errorHandler)
+
 app.get("/health",(req:Request,res:Response)=> {
  res.status(200).json({message:"Server is running fine"})
 })
 
 
 
-app.use(errorHandler)
+
+
 
 
 async function startServer(){

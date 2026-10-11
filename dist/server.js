@@ -18,16 +18,20 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const dataBase_1 = require("./config/dataBase");
 const errorHandler_1 = require("./middleware/errorHandler");
+const user_routes_1 = __importDefault(require("./router/user.routes"));
+const auth_routes_1 = __importDefault(require("./router/auth.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 app.use((0, helmet_1.default)());
+app.use("/api/users", user_routes_1.default);
+app.use("/api/auth", auth_routes_1.default);
+app.use(errorHandler_1.errorHandler);
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "Server is running fine" });
 });
-app.use(errorHandler_1.errorHandler);
 function startServer() {
     return __awaiter(this, void 0, void 0, function* () {
         yield (0, dataBase_1.connectDB)();
