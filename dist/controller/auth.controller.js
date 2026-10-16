@@ -55,6 +55,9 @@ function login(req, res) {
         if (!loginUser || !loginUser.passwordHash || !passwordMatches) {
             throw new AppError_1.AppError(401, "Invalid email or password");
         }
+        if (loginUser.isSuspended) {
+            throw new AppError_1.AppError(403, "This account has been suspended");
+        }
         res.json({
             user: (0, serializer_1.toPublicUser)(loginUser),
             token: (0, jwt_1.signToken)(loginUser.id),

@@ -20,5 +20,16 @@ export function toPublicUser(user: UserDoc) {
     ...toPublicProfile(user),
     email: user.email,
     isVerified: user.isVerified,
+    role:user.role
   };
+}
+
+export function adminUser(user:UserDoc){
+    return{
+        ...toPublicUser(user),
+        isSuspended:user.isSuspended,
+        providers:user.providers.map((p:any)=>p.providers),
+        updatedAt:user.updatedAt
+
+    }
 }

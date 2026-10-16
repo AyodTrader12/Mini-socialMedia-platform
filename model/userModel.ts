@@ -60,6 +60,15 @@ const userSchema = new Schema(
         isVerified:{
             type:Boolean,
             default:false
+        },
+        role:{
+            type:String,
+            enum:["user","admin"],
+            default:"user"
+        },
+        isSuspended:{
+            type:Boolean,
+            default:false
         }
     },
     {timestamps:true}

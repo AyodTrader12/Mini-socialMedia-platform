@@ -56,6 +56,15 @@ const userSchema = new mongoose_1.Schema({
     isVerified: {
         type: Boolean,
         default: false
+    },
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user"
+    },
+    isSuspended: {
+        type: Boolean,
+        default: false
     }
 }, { timestamps: true });
 userSchema.index({ "providers.providerId": 1, "providers.providerName": 1 });

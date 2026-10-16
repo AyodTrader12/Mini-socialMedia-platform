@@ -43,6 +43,10 @@ export async function login(req: Request, res: Response) {
     throw new AppError(401, "Invalid email or password");
   }
 
+   if (loginUser.isSuspended) {
+    throw new AppError(403, "This account has been suspended");
+  }
+
   res.json({
     user: toPublicUser(loginUser),
     token: signToken(loginUser.id),
