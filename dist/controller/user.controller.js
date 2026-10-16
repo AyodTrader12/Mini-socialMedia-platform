@@ -12,9 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllUsers = getAllUsers;
 exports.getUserByUsername = getUserByUsername;
 exports.updateProfile = updateProfile;
+exports.setAvatar = setAvatar;
+exports.removeAvatar = removeAvatar;
 const AppError_1 = require("../config/AppError");
 const userModel_1 = require("../model/userModel");
 const serializer_1 = require("../utils/serializer");
+const upload_service_1 = require("../services/upload.service");
 function getAllUsers(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         const page = Math.max(1, Number(req.query.page) || 1);
@@ -65,5 +68,32 @@ function updateProfile(req, res) {
         if (!user1)
             throw new AppError_1.AppError(404, "User not found");
         res.json({ user: (0, serializer_1.toPublicUser)(user1) });
+    });
+}
+const avatarPublicId = (userId) => `mini-social/avatars/${userId}`;
+function setAvatar(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!req.file)
+            throw new AppError_1.AppError(400, "Avatar image is required");
+        const result = yield (0, upload_service_1.uploadBuffer)(req.file.buffer, {
+            public_id: avatarPublicId(req.userId),
+            overwrite: true,
+            invalidate: true,
+            resource_type: "image",
+            transformation: [{ width: 400, height: 400, crop: "fill", gravity: "auto" }],
+        });
+        const newUser = yield userModel_1.user.findByIdAndUpdate(req.userId, { avatar: result.secure_url }, { new: true });
+        if (!userModel_1.user)
+            throw new AppError_1.AppError(404, "User not found");
+        res.json({ user: (0, serializer_1.toPublicUser)(newUser) });
+    });
+}
+function removeAvatar(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const newUser = yield userModel_1.user.findByIdAndUpdate(req.userId, { $unset: { avatar: "" } }, { new: true });
+        if (!userModel_1.user)
+            throw new AppError_1.AppError(404, "User not found");
+        (0, upload_service_1.deleteAsset)(avatarPublicId(req.userId)).catch((err) => console.error("Failed to delete avatar asset:", err));
+        res.json({ user: (0, serializer_1.toPublicUser)(newUser) });
     });
 }
