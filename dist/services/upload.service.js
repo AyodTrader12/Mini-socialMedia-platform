@@ -12,10 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.avatarPublicId = void 0;
 exports.uploadBuffer = uploadBuffer;
 exports.deleteAsset = deleteAsset;
 const cloudinary_1 = __importDefault(require("../config/cloudinary"));
 const AppError_1 = require("../config/AppError");
+const avatarPublicId = (userId) => `mini-social/avatars/${userId}`;
+exports.avatarPublicId = avatarPublicId;
 function uploadBuffer(buffer, options) {
     return new Promise((resolve, reject) => {
         const stream = cloudinary_1.default.uploader.upload_stream(options, (error, result) => {

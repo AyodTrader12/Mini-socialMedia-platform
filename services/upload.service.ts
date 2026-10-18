@@ -2,6 +2,8 @@ import { UploadApiOptions, UploadApiResponse } from "cloudinary";
 import cloudinary from "../config/cloudinary";
 import { AppError } from "../config/AppError";
 
+
+export const avatarPublicId = (userId: string) => `mini-social/avatars/${userId}`;
 export function uploadBuffer(
   buffer: Buffer,
   options: UploadApiOptions

@@ -7,6 +7,7 @@ import { connectDB } from "./config/dataBase";
 import { errorHandler } from "./middleware/errorHandler";
 import userRoutes from "./router/user.routes";
 import authRoutes from "./router/auth.routes";
+import adminRoutes from "./router/admin.routes"
 env.config()
 
 const app:Application = express();
@@ -19,17 +20,13 @@ app.use(helmet())
 
 app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/admin",adminRoutes)
 
 app.use(errorHandler)
 
 app.get("/health",(req:Request,res:Response)=> {
  res.status(200).json({message:"Server is running fine"})
 })
-
-
-
-
-
 
 
 async function startServer(){

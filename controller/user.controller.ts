@@ -3,7 +3,7 @@ import { AppError } from "../config/AppError";
 import { user } from "../model/userModel";
 import { UpdateProfileInput } from "../validators/user.validator";
 import { toPublicProfile, toPublicUser } from "../utils/serializer";
-import { uploadBuffer,deleteAsset } from "../services/upload.service";
+import { uploadBuffer,deleteAsset,avatarPublicId } from "../services/upload.service";
 
 export async function getAllUsers(req: Request, res: Response) {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -63,7 +63,7 @@ export async function updateProfile(req: Request, res: Response) {
   res.json({ user: toPublicUser(user1) });
 }
 
-const avatarPublicId = (userId: string) => `mini-social/avatars/${userId}`;
+// const avatarPublicId = (userId: string) => `mini-social/avatars/${userId}`;
 
 export async function setAvatar(req: Request, res: Response) {
   if (!req.file) throw new AppError(400, "Avatar image is required");

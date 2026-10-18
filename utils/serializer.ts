@@ -24,7 +24,7 @@ export function toPublicUser(user: UserDoc) {
   };
 }
 
-export function adminUser(user:UserDoc){
+export function toAdminUser(user:UserDoc){
     return{
         ...toPublicUser(user),
         isSuspended:user.isSuspended,

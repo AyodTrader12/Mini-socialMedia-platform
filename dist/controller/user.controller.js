@@ -70,13 +70,13 @@ function updateProfile(req, res) {
         res.json({ user: (0, serializer_1.toPublicUser)(user1) });
     });
 }
-const avatarPublicId = (userId) => `mini-social/avatars/${userId}`;
+// const avatarPublicId = (userId: string) => `mini-social/avatars/${userId}`;
 function setAvatar(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!req.file)
             throw new AppError_1.AppError(400, "Avatar image is required");
         const result = yield (0, upload_service_1.uploadBuffer)(req.file.buffer, {
-            public_id: avatarPublicId(req.userId),
+            public_id: (0, upload_service_1.avatarPublicId)(req.userId),
             overwrite: true,
             invalidate: true,
             resource_type: "image",
@@ -93,7 +93,7 @@ function removeAvatar(req, res) {
         const newUser = yield userModel_1.user.findByIdAndUpdate(req.userId, { $unset: { avatar: "" } }, { new: true });
         if (!userModel_1.user)
             throw new AppError_1.AppError(404, "User not found");
-        (0, upload_service_1.deleteAsset)(avatarPublicId(req.userId)).catch((err) => console.error("Failed to delete avatar asset:", err));
+        (0, upload_service_1.deleteAsset)((0, upload_service_1.avatarPublicId)(req.userId)).catch((err) => console.error("Failed to delete avatar asset:", err));
         res.json({ user: (0, serializer_1.toPublicUser)(newUser) });
     });
 }

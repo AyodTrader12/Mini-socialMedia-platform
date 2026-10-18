@@ -1,0 +1,20 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const admin_controller_1 = require("../controller/admin.controller");
+const authenticate_1 = require("../middleware/authenticate");
+const requireAdmin_1 = require("../middleware/requireAdmin");
+const validate_1 = require("../middleware/validate");
+const admin_validator_1 = require("../validators/admin.validator");
+const router = (0, express_1.Router)();
+// Applies to every route below
+router.use(authenticate_1.authenticate, requireAdmin_1.requireAdmin);
+router.get("/stats", admin_controller_1.getStats);
+router.get("/getAllUsers", admin_controller_1.listUsers);
+router.get("/users/:id", admin_controller_1.getUser);
+router.patch("/users/:id/verify", admin_controller_1.verifyUser);
+router.patch("/users/:id/suspend", admin_controller_1.suspendUser);
+router.patch("/users/:id/unsuspend", admin_controller_1.unsuspendUser);
+router.patch("/users/:id/role", (0, validate_1.validate)(admin_validator_1.updateRoleSchema), admin_controller_1.updateRole);
+router.delete("/users/deleteUser/:id", admin_controller_1.deleteUser);
+exports.default = router;
