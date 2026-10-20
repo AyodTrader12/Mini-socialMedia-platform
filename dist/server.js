@@ -21,6 +21,7 @@ const errorHandler_1 = require("./middleware/errorHandler");
 const user_routes_1 = __importDefault(require("./router/user.routes"));
 const auth_routes_1 = __importDefault(require("./router/auth.routes"));
 const admin_routes_1 = __importDefault(require("./router/admin.routes"));
+const post_routes_1 = __importDefault(require("./router/post.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const PORT = process.env.PORT;
@@ -30,6 +31,7 @@ app.use((0, helmet_1.default)());
 app.use("/api/users", user_routes_1.default);
 app.use("/api/auth", auth_routes_1.default);
 app.use("/api/admin", admin_routes_1.default);
+app.use("/api/post", post_routes_1.default);
 app.use(errorHandler_1.errorHandler);
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "Server is running fine" });

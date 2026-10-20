@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.toPublicProfile = toPublicProfile;
 exports.toPublicUser = toPublicUser;
 exports.toAdminUser = toAdminUser;
+exports.toPostAuthor = toPostAuthor;
+exports.toPost = toPost;
 // Safe for anyone to see
 function toPublicProfile(user) {
     return {
@@ -20,4 +22,29 @@ function toPublicUser(user) {
 }
 function toAdminUser(user) {
     return Object.assign(Object.assign({}, toPublicUser(user)), { isSuspended: user.isSuspended, providers: user.providers.map((p) => p.providers), updatedAt: user.updatedAt });
+}
+function toPostAuthor(user) {
+    return {
+        id: user._id,
+        username: user.userName,
+        fullName: user.fullName,
+        avatar: user.avatar,
+    };
+}
+function toPost(post, author) {
+    return {
+        id: post._id,
+        author: toPostAuthor(author),
+        caption: post.caption,
+        media: post.media.map((m) => ({
+            url: m.url,
+            type: m.type,
+            width: m.width,
+            height: m.height,
+        })),
+        likesCount: post.likesCount,
+        commentsCount: post.commentsCount,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt,
+    };
 }

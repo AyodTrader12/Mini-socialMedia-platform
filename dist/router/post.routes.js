@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const post_controller_1 = require("../controller/post.controller");
+const validate_1 = require("../middleware/validate");
+const requireVerified_1 = require("../middleware/requireVerified");
+const authenticate_1 = require("../middleware/authenticate");
+const upload_1 = require("../middleware/upload");
+const post_validator_1 = require("../validators/post.validator");
+const router = (0, express_1.Router)();
+router.post("/create-post", authenticate_1.authenticate, requireVerified_1.requireVerified, upload_1.postMediaUpload, (0, validate_1.validate)(post_validator_1.createPostSchema), post_controller_1.createPost);
+exports.default = router;

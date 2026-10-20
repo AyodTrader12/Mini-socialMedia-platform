@@ -1,5 +1,5 @@
 import { user } from "../model/userModel";
-
+import { Post } from "../model/postModel";
 type UserDoc = InstanceType<typeof user>;
 
 // Safe for anyone to see
@@ -32,4 +32,35 @@ export function toAdminUser(user:UserDoc){
         updatedAt:user.updatedAt
 
     }
+}
+
+
+
+type PostDoc = InstanceType<typeof Post>;
+
+export function toPostAuthor(user: UserDoc) {
+  return {
+    id: user._id,
+    username: user.userName,
+    fullName: user.fullName,
+    avatar: user.avatar,
+  };
+}
+
+export function toPost(post: PostDoc, author: UserDoc) {
+  return {
+    id: post._id,
+    author: toPostAuthor(author),
+    caption: post.caption,
+    media: post.media.map((m) => ({
+      url: m.url,
+      type: m.type,
+      width: m.width,
+      height: m.height,
+    })),
+    likesCount: post.likesCount,
+    commentsCount: post.commentsCount,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  };
 }
