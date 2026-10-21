@@ -3,23 +3,17 @@ import nodemailer from "nodemailer";
 
 if(
     !env.EMAIL_FROM ||
-    !env.GOOGLE_CLIENT_ID ||
-    !env.GOOGLE_CLIENT_SECRET ||
-    !env.GOOGLE_REFRESH_TOKEN 
+    !env.GOOGLE_KEY 
 ) {
     throw new Error("Missing required email configuration in environment variables");
 }
 
 const transporter = nodemailer.createTransport({
-   service:"gmail",
-   auth:{
-    type:"oAuth2",
-    user:env.EMAIL_FROM,
-    clientId:env.GOOGLE_CLIENT_ID,
-    clientSecret:env.GOOGLE_CLIENT_SECRET,
-    refreshToken:env.GOOGLE_REFRESH_TOKEN,
- 
-   } 
+     service: "gmail",
+    auth: {
+      user: process.env.EMAIL_FROM as string,
+      pass: process.env.GOOGLE_KEY as string,
+    },
 })
 
 export default transporter  

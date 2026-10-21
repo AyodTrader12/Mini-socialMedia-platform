@@ -25,7 +25,7 @@ export const registerSchema = z.object({
 
 export const loginSchema = z.object({
   email: emailRule,
-  password: z.string().min(1, "Password is required"),
+  password: passwordRule
 });
 
 export const verifyAccountSchema = z.object({ otp: otpRule });

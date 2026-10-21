@@ -80,6 +80,7 @@ export async function resendOtp(req: Request, res: Response) {
   const resendOtpUser = await user.findById(req.userId);
   if (!resendOtpUser) throw new AppError(404, "User not found");
   if (resendOtpUser.isVerified) throw new AppError(400, "Account is already verified");
+  // if(resendOtpUser.isVerified === false) throw new AppError(400,"account not verified request for otp")
 
   const sent = await sendOtp(resendOtpUser, "verify");
   if (!sent) {
@@ -126,7 +127,7 @@ export async function changePassword(req: Request, res: Response) {
   if (!changePasswordUser.passwordHash) {
     throw new AppError(400, "This account has no password yet. Use 'Forgot password' to set one.");
   }
-
+  
   const matches = await bcrypt.compare(currentPassword, changePasswordUser.passwordHash);
   if (!matches) {
     // 400, not 401: a 401 would make the frontend think the login session expired

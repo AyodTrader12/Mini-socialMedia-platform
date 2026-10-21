@@ -34,9 +34,9 @@ export async function getAllUsers(req: Request, res: Response) {
 }
 
 export async function getUserByUsername(req: Request, res: Response) {
-  const username = String(req.params.username).toLowerCase();
+  const userName = String(req.params.username).toLowerCase();
 
-  const userByUserName = await user.findOne({ username });
+  const userByUserName = await user.findOne({ userName });
   if (!userByUserName) throw new AppError(404, "User not found");
 
   res.json({ user: toPublicProfile(userByUserName) });

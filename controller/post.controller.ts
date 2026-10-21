@@ -10,7 +10,7 @@ export async function createPost(req: Request, res: Response) {
   const { caption } = req.body as CreatePostInput;
   const files = (req.files as Express.Multer.File[] | undefined) ?? [];
 
-  assertValidPost(files);
+  assertValidPost(caption,files);
 
   const author = await user.findById(req.userId);
   if (!author) throw new AppError(404, "User not found");

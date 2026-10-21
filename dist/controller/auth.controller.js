@@ -94,6 +94,7 @@ function resendOtp(req, res) {
             throw new AppError_1.AppError(404, "User not found");
         if (resendOtpUser.isVerified)
             throw new AppError_1.AppError(400, "Account is already verified");
+        // if(resendOtpUser.isVerified === false) throw new AppError(400,"account not verified request for otp")
         const sent = yield (0, otp_service_1.sendOtp)(resendOtpUser, "verify");
         if (!sent) {
             throw new AppError_1.AppError(429, "Please wait a minute before requesting another code");

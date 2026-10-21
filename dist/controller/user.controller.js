@@ -46,8 +46,8 @@ function getAllUsers(req, res) {
 }
 function getUserByUsername(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
-        const username = String(req.params.username).toLowerCase();
-        const userByUserName = yield userModel_1.user.findOne({ username });
+        const userName = String(req.params.username).toLowerCase();
+        const userByUserName = yield userModel_1.user.findOne({ userName });
         if (!userByUserName)
             throw new AppError_1.AppError(404, "User not found");
         res.json({ user: (0, serializer_1.toPublicProfile)(userByUserName) });

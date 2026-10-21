@@ -20,7 +20,7 @@ function createPost(req, res) {
         var _a;
         const { caption } = req.body;
         const files = (_a = req.files) !== null && _a !== void 0 ? _a : [];
-        (0, post_service_1.assertValidPost)(files);
+        (0, post_service_1.assertValidPost)(caption, files);
         const author = yield userModel_1.user.findById(req.userId);
         if (!author)
             throw new AppError_1.AppError(404, "User not found");

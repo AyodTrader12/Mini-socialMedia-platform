@@ -7,9 +7,9 @@ import { avatarUploads } from "../middleware/upload";
 const router = Router();
 
 router.get("/", authenticate, getAllUsers);
-router.get("/:username", authenticate, getUserByUsername);
+router.get("/getOneUser/:username", authenticate, getUserByUsername);
 router.patch("/profile", authenticate, validate(updateProfileSchema), updateProfile);
-router.put("/avatar",authenticate,avatarUploads,setAvatar)
-router.delete("/avatar",authenticate,removeAvatar)
+router.put("/avatar/uploadAvatar",authenticate,avatarUploads,setAvatar)
+router.delete("/avatar/deleteAvatar",authenticate,removeAvatar)
 
 export default router;

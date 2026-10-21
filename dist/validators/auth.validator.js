@@ -22,7 +22,7 @@ exports.registerSchema = zod_1.z.object({
 });
 exports.loginSchema = zod_1.z.object({
     email: emailRule,
-    password: zod_1.z.string().min(1, "Password is required"),
+    password: passwordRule
 });
 exports.verifyAccountSchema = zod_1.z.object({ otp: otpRule });
 exports.forgotPasswordSchema = zod_1.z.object({ email: emailRule });
