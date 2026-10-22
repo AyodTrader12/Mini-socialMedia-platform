@@ -9,6 +9,7 @@ import userRoutes from "./router/user.routes";
 import authRoutes from "./router/auth.routes";
 import adminRoutes from "./router/admin.routes"
 import postRoutes from "./router/post.routes"
+import shareRoutes from "./router/share.routes"
 env.config()
 
 const app:Application = express();
@@ -23,6 +24,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/admin",adminRoutes)
 app.use("/api/post",postRoutes)
+app.use("/api/share",shareRoutes)
 app.use(errorHandler)
 
 app.get("/health",(req:Request,res:Response)=> {

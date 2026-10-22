@@ -31,7 +31,7 @@ function toPostAuthor(user) {
         avatar: user.avatar,
     };
 }
-function toPost(post, author) {
+function toPost(post, author, viewer = { liked: false, bookmarked: false }) {
     return {
         id: post._id,
         author: toPostAuthor(author),
@@ -44,6 +44,8 @@ function toPost(post, author) {
         })),
         likesCount: post.likesCount,
         commentsCount: post.commentsCount,
+        likedByMe: viewer.liked,
+        bookmarkedByMe: viewer.bookmarked,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
     };

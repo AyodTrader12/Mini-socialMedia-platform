@@ -1,7 +1,11 @@
 import { LIMITS } from "../config/limits";
 import { AppError } from "../config/AppError";
 import { uploadBuffer,deleteAsset } from "./upload.service";
-
+import { encodeCursor,decodeCursor } from "../utils/cursor";
+import { toPost } from "../utils/serializer";
+import { Post } from "../model/postModel";
+import { user  } from "../model/userModel";
+import { Bookmark } from "../model/bookMark";
 export type PostMedia = {
   url: string;
   publicId: string;
@@ -84,4 +88,100 @@ export async function uploadPostMedia(files: Express.Multer.File[]): Promise<Pos
 
 export async function deletePostMedia(media: PostMedia[]) {
   await Promise.allSettled(media.map((m) => deleteAsset(m.publicId, m.type)));
+}
+
+type PostDoc = InstanceType<typeof Post>;
+
+/** Of these post IDs, which has the viewer saved? */
+async function getBookmarkedIds(viewerId: string | undefined, postIds: unknown[]) {
+  if (!viewerId || postIds.length === 0) return new Set<string>();
+
+  const rows = await Bookmark.find({ user: viewerId, post: { $in: postIds } }).select("post");
+  return new Set(rows.map((r) => r.post.toString()));
+}
+
+/** Turns post documents into API objects: loads authors and viewer flags in bulk. */
+export async function serializePosts(docs: PostDoc[], viewerId?: string) {
+  const authorIds = [...new Set(docs.map((p) => p.author.toString()))];
+
+  const [authors, bookmarked] = await Promise.all([
+    user.find({ _id: { $in: authorIds } }),
+    getBookmarkedIds(viewerId, docs.map((p) => p._id)),
+  ]);
+  const authorMap = new Map(authors.map((a:any) => [a.id, a]));
+
+  return docs.flatMap((post) => {
+    const author = authorMap.get(post.author.toString());
+    if (!author) return []; // skip orphaned posts
+    return [toPost(post, author, { liked: false, bookmarked: bookmarked.has(post.id) })];
+  });
+}
+
+export async function getPostsPage(opts: {
+  filter?: Record<string, unknown>;
+  cursor?: unknown;
+  limit?: unknown;
+  viewerId?: string;
+}) {
+  const limit = Math.min(30, Math.max(1, Number(opts.limit) || 10));
+  const filter: Record<string, unknown> = { ...opts.filter };
+
+  const cursor = decodeCursor(opts.cursor);
+  if (cursor) {
+    filter.$or = [
+      { createdAt: { $lt: cursor.createdAt } },
+      { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+    ];
+  }
+
+  const docs = await Post.find(filter)
+    .sort({ createdAt: -1, _id: -1 })
+    .limit(limit + 1);
+
+  const hasMore = docs.length > limit;
+  const page = hasMore ? docs.slice(0, limit) : docs;
+
+  return {
+    posts: await serializePosts(page, opts.viewerId),
+    nextCursor: hasMore ? encodeCursor(page[page.length - 1]) : null,
+  };
+}
+
+export async function getSavedPostsPage(opts: {
+  viewerId: string;
+  cursor?: unknown;
+  limit?: unknown;
+}) {
+  const limit = Math.min(30, Math.max(1, Number(opts.limit) || 10));
+  const filter: Record<string, unknown> = { user: opts.viewerId };
+
+  // The cursor here points at a Bookmark (when you saved it), not at a Post
+  const cursor = decodeCursor(opts.cursor);
+  if (cursor) {
+    filter.$or = [
+      { createdAt: { $lt: cursor.createdAt } },
+      { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+    ];
+  }
+
+  const rows = await Bookmark.find(filter)
+    .sort({ createdAt: -1, _id: -1 })
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const page = hasMore ? rows.slice(0, limit) : rows;
+
+  const posts = await Post.find({ _id: { $in: page.map((r) => r.post) } });
+  const postMap = new Map(posts.map((p) => [p.id, p]));
+
+  // Keep the order you saved them in, and skip posts that no longer exist
+  const ordered = page.flatMap((row) => {
+    const post = postMap.get(row.post.toString());
+    return post ? [post] : [];
+  });
+
+  return {
+    posts: await serializePosts(ordered, opts.viewerId),
+    nextCursor: hasMore ? encodeCursor(page[page.length - 1]) : null,
+  };
 }

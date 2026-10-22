@@ -20,12 +20,14 @@ exports.resendOtp = resendOtp;
 exports.forgotPassword = forgotPassword;
 exports.resetPassword = resetPassword;
 exports.changePassword = changePassword;
+exports.getUserPosts = getUserPosts;
 const AppError_1 = require("../config/AppError");
 const userModel_1 = require("../model/userModel");
 const jwt_1 = require("../utils/jwt");
 const serializer_1 = require("../utils/serializer");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const otp_service_1 = require("../services/otp.service");
+const post_service_1 = require("../services/post.service");
 const DUMMY_HASH = bcrypt_1.default.hashSync("dummy-password", 12);
 function register(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
@@ -144,5 +146,20 @@ function changePassword(req, res) {
         changePasswordUser.passwordHash = yield bcrypt_1.default.hash(newPassword, 12);
         yield changePasswordUser.save();
         res.json({ message: "Password changed successfully" });
+    });
+}
+function getUserPosts(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const username = String(req.params.username).toLowerCase();
+        const User = yield userModel_1.user.findOne({ username });
+        if (!userModel_1.user)
+            throw new AppError_1.AppError(404, "User not found");
+        const result = yield (0, post_service_1.getPostsPage)({
+            filter: { author: userModel_1.user._id },
+            cursor: req.query.cursor,
+            limit: req.query.limit,
+            viewerId: req.userId,
+        });
+        res.json(result);
     });
 }

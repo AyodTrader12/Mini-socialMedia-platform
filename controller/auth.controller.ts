@@ -6,7 +6,7 @@ import { toPublicProfile, toPublicUser } from "../utils/serializer";
 import bcrypt from "bcrypt";
 import { sendOtp, verifyOtp } from "../services/otp.service";
 import { RegisterInput,LoginInput,ResetPasswordInput,VerifyAccountInput,ChangePasswordInput,ForgotPasswordInput } from "../validators/auth.validator";
-
+import { getPostsPage } from "../services/post.service";
 const DUMMY_HASH = bcrypt.hashSync("dummy-password", 12);
 
 export async function register(req: Request, res: Response) {
@@ -138,4 +138,19 @@ export async function changePassword(req: Request, res: Response) {
   await changePasswordUser.save();
 
   res.json({ message: "Password changed successfully" });
+}
+
+export async function getUserPosts(req: Request, res: Response) {
+  const username = String(req.params.username).toLowerCase();
+
+  const User = await user.findOne({ username });
+  if (!user) throw new AppError(404, "User not found");
+
+  const result = await getPostsPage({
+    filter: { author: user._id },
+    cursor: req.query.cursor,
+    limit: req.query.limit,
+    viewerId: req.userId,
+  });
+  res.json(result);
 }

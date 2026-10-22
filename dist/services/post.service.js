@@ -12,9 +12,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.assertValidPost = assertValidPost;
 exports.uploadPostMedia = uploadPostMedia;
 exports.deletePostMedia = deletePostMedia;
+exports.serializePosts = serializePosts;
+exports.getPostsPage = getPostsPage;
+exports.getSavedPostsPage = getSavedPostsPage;
 const limits_1 = require("../config/limits");
 const AppError_1 = require("../config/AppError");
 const upload_service_1 = require("./upload.service");
+const cursor_1 = require("../utils/cursor");
+const serializer_1 = require("../utils/serializer");
+const postModel_1 = require("../model/postModel");
+const userModel_1 = require("../model/userModel");
+const bookMark_1 = require("../model/bookMark");
 // export async function uploadPostMedia(files: Express.Multer.File[]): Promise<PostMedia[]> {
 //   if (files.length === 0) return [];
 //   // ...rest unchanged
@@ -79,5 +87,83 @@ function uploadPostMedia(files) {
 function deletePostMedia(media) {
     return __awaiter(this, void 0, void 0, function* () {
         yield Promise.allSettled(media.map((m) => (0, upload_service_1.deleteAsset)(m.publicId, m.type)));
+    });
+}
+/** Of these post IDs, which has the viewer saved? */
+function getBookmarkedIds(viewerId, postIds) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!viewerId || postIds.length === 0)
+            return new Set();
+        const rows = yield bookMark_1.Bookmark.find({ user: viewerId, post: { $in: postIds } }).select("post");
+        return new Set(rows.map((r) => r.post.toString()));
+    });
+}
+/** Turns post documents into API objects: loads authors and viewer flags in bulk. */
+function serializePosts(docs, viewerId) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const authorIds = [...new Set(docs.map((p) => p.author.toString()))];
+        const [authors, bookmarked] = yield Promise.all([
+            userModel_1.user.find({ _id: { $in: authorIds } }),
+            getBookmarkedIds(viewerId, docs.map((p) => p._id)),
+        ]);
+        const authorMap = new Map(authors.map((a) => [a.id, a]));
+        return docs.flatMap((post) => {
+            const author = authorMap.get(post.author.toString());
+            if (!author)
+                return []; // skip orphaned posts
+            return [(0, serializer_1.toPost)(post, author, { liked: false, bookmarked: bookmarked.has(post.id) })];
+        });
+    });
+}
+function getPostsPage(opts) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const limit = Math.min(30, Math.max(1, Number(opts.limit) || 10));
+        const filter = Object.assign({}, opts.filter);
+        const cursor = (0, cursor_1.decodeCursor)(opts.cursor);
+        if (cursor) {
+            filter.$or = [
+                { createdAt: { $lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+            ];
+        }
+        const docs = yield postModel_1.Post.find(filter)
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(limit + 1);
+        const hasMore = docs.length > limit;
+        const page = hasMore ? docs.slice(0, limit) : docs;
+        return {
+            posts: yield serializePosts(page, opts.viewerId),
+            nextCursor: hasMore ? (0, cursor_1.encodeCursor)(page[page.length - 1]) : null,
+        };
+    });
+}
+function getSavedPostsPage(opts) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const limit = Math.min(30, Math.max(1, Number(opts.limit) || 10));
+        const filter = { user: opts.viewerId };
+        // The cursor here points at a Bookmark (when you saved it), not at a Post
+        const cursor = (0, cursor_1.decodeCursor)(opts.cursor);
+        if (cursor) {
+            filter.$or = [
+                { createdAt: { $lt: cursor.createdAt } },
+                { createdAt: cursor.createdAt, _id: { $lt: cursor.id } },
+            ];
+        }
+        const rows = yield bookMark_1.Bookmark.find(filter)
+            .sort({ createdAt: -1, _id: -1 })
+            .limit(limit + 1);
+        const hasMore = rows.length > limit;
+        const page = hasMore ? rows.slice(0, limit) : rows;
+        const posts = yield postModel_1.Post.find({ _id: { $in: page.map((r) => r.post) } });
+        const postMap = new Map(posts.map((p) => [p.id, p]));
+        // Keep the order you saved them in, and skip posts that no longer exist
+        const ordered = page.flatMap((row) => {
+            const post = postMap.get(row.post.toString());
+            return post ? [post] : [];
+        });
+        return {
+            posts: yield serializePosts(ordered, opts.viewerId),
+            nextCursor: hasMore ? (0, cursor_1.encodeCursor)(page[page.length - 1]) : null,
+        };
     });
 }

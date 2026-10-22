@@ -8,13 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createPost = createPost;
+exports.getFeed = getFeed;
+exports.getPostById = getPostById;
 const AppError_1 = require("../config/AppError");
 const userModel_1 = require("../model/userModel");
 const postModel_1 = require("../model/postModel");
 const serializer_1 = require("../utils/serializer");
 const post_service_1 = require("../services/post.service");
+const mongoose_1 = __importDefault(require("mongoose"));
+const post_service_2 = require("../services/post.service");
+const post_service_3 = require("../services/post.service");
 function createPost(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
@@ -35,5 +43,29 @@ function createPost(req, res) {
             throw err;
         }));
         res.status(201).json({ post: (0, serializer_1.toPost)(post, author) });
+    });
+}
+function getFeed(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const result = yield (0, post_service_2.getPostsPage)({
+            cursor: req.query.cursor,
+            limit: req.query.limit,
+            viewerId: req.userId,
+        });
+        res.json(result);
+    });
+}
+function getPostById(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const id = String(req.params.id);
+        if (!mongoose_1.default.isValidObjectId(id))
+            throw new AppError_1.AppError(404, "Post not found");
+        const post = yield postModel_1.Post.findById(id);
+        if (!post)
+            throw new AppError_1.AppError(404, "Post not found");
+        const [serialized] = yield (0, post_service_3.serializePosts)([post], req.userId);
+        if (!serialized)
+            throw new AppError_1.AppError(404, "Post not found"); // author was deleted
+        res.json({ post: serialized });
     });
 }

@@ -47,7 +47,11 @@ export function toPostAuthor(user: UserDoc) {
   };
 }
 
-export function toPost(post: PostDoc, author: UserDoc) {
+export function toPost(
+  post: PostDoc,
+  author: UserDoc,
+  viewer: { liked: boolean; bookmarked: boolean } = { liked: false, bookmarked: false }
+) {
   return {
     id: post._id,
     author: toPostAuthor(author),
@@ -60,6 +64,8 @@ export function toPost(post: PostDoc, author: UserDoc) {
     })),
     likesCount: post.likesCount,
     commentsCount: post.commentsCount,
+    likedByMe: viewer.liked,
+    bookmarkedByMe: viewer.bookmarked,
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
   };

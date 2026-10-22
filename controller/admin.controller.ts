@@ -7,7 +7,7 @@ import { escapeRegex } from "../utils/escapeRegex";
 import { UpdateRoleInput } from "../validators/admin.validator";
 import { toAdminUser } from "../utils/serializer";
 import { deleteAsset,avatarPublicId } from "../services/upload.service";
-
+import { Bookmark } from "../model/bookMark";
 
 async function findTarget(id: string) {
   if (!mongoose.isValidObjectId(id)) throw new AppError(400, "Invalid user id");
@@ -130,6 +130,8 @@ export async function deleteUser(req: Request, res: Response) {
 
   await user.deleteOne();
   await Otp.deleteMany({ user: user.id });
+  
+  await Bookmark.deleteMany({ user: user.id });
 
   // Best effort, same pattern as removeAvatar
   deleteAsset(avatarPublicId(user.id)).catch((err) =>

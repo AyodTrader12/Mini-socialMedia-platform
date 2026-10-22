@@ -27,6 +27,7 @@ const AppError_1 = require("../config/AppError");
 const escapeRegex_1 = require("../utils/escapeRegex");
 const serializer_1 = require("../utils/serializer");
 const upload_service_1 = require("../services/upload.service");
+const bookMark_1 = require("../model/bookMark");
 function findTarget(id) {
     return __awaiter(this, void 0, void 0, function* () {
         if (!mongoose_1.default.isValidObjectId(id))
@@ -144,6 +145,7 @@ function deleteUser(req, res) {
         assertNotAdmin(user);
         yield user.deleteOne();
         yield otp_1.Otp.deleteMany({ user: user.id });
+        yield bookMark_1.Bookmark.deleteMany({ user: user.id });
         // Best effort, same pattern as removeAvatar
         (0, upload_service_1.deleteAsset)((0, upload_service_1.avatarPublicId)(user.id)).catch((err) => console.error("Failed to delete avatar asset:", err));
         // TODO (Days 8-10): also delete this user's posts, likes and comments
